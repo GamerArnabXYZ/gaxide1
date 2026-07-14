@@ -8,27 +8,37 @@ allprojects {
 val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build").get()
 rootProject.layout.buildDirectory.value(newBuildDir)
 
+// ============================================================================
+// MERGED SUBPROJECTS BLOCK: Build dir, evaluation dependencies, aur namespace patch
+// ============================================================================
 subprojects {
+    // Part 1: Build directory set karna
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
-}
 
-subprojects {
+    // Part 2: Evaluation depend on app
     project.evaluationDependsOn(":app")
-}
 
-// ============================================================================
-// AGP 8.0+ PATCH: Purani libraries (jaise disk_space) ka namespace fix karne ke liye
-// ============================================================================
-subprojects {
-    afterEvaluate {
+    // Part 3: AGP 8.0+ safe namespace inject patch
+    val configureNamespace = {
         if (plugins.hasPlugin("com.android.library")) {
             extensions.findByType<com.android.build.gradle.LibraryExtension>()?.apply {
                 if (namespace == null) {
-                    // Agar manifest ka package nahi utha pa raha, toh fallback name set karein
-                    namespace = if (project.group.toString().isNotEmpty()) project.group.toString() else "com.fallback.${project.name.replace(":", "")}"
+                    namespace = if (project.group.toString().isNotEmpty()) {
+                        project.group.toString()
+                    } else {
+                        "com.fallback.${project.name.replace(":", "")}"
+                    }
                 }
             }
+        }
+    }
+
+    if (state.executed) {
+        configureNamespace()
+    } else {
+        afterEvaluate {
+            configureNamespace()
         }
     }
 }
