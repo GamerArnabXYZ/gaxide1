@@ -4,7 +4,7 @@ allprojects {
         mavenCentral()
     }
     
-    // KOTLIN VERSION FORCING: Purani libraries ka plugin upgrade karne ke liye
+    // Kotlin version plugin force upgrade
     buildscript {
         configurations.all {
             resolutionStrategy {
@@ -18,7 +18,7 @@ val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build"
 rootProject.layout.buildDirectory.value(newBuildDir)
 
 // ============================================================================
-// MERGED SUBPROJECTS BLOCK: Toolchain, namespace aur dependencies patch
+// MERGED SUBPROJECTS BLOCK: Zero finalized properties errors
 // ============================================================================
 subprojects {
     // 1. Build directory set karna
@@ -37,16 +37,15 @@ subprojects {
         }
     }
 
-    // 4. FIX: Java Toolchain aur Kotlin JVM target (Bypasses finalized compileOptions)
-    plugins.withId("org.jetbrains.kotlin.android") {
-        extensions.findByType<org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension>()?.apply {
-            jvmToolchain(17) // Pure Kotlin android compilation ko Java 17 toolchain par set karein
-        }
+    // 4. FIX: Compiler task settings override bina property lock kiye
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        // Compiler args use karne se finalized variables error nahi dete
+        kotlinOptions.freeCompilerArgs += listOf("-jvm-target", "17")
     }
 
     tasks.withType<JavaCompile>().configureEach {
-        // Direct compiler options target set karna jo finalized error nahi deta
-        options.release.set(17)
+        // Bina release property finalize kiye target set karne ka safe tareeka
+        options.compilerArgs.addAll(listOf("--release", "17"))
     }
 
     // 5. AGP 8.0+ safe namespace inject patch (Sirf libraries ke liye)
