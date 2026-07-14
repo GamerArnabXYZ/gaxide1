@@ -27,26 +27,29 @@ class FilesController extends GetxController {
 
   Future<void> _getSpace() async {
     try {
-      // Fetching storage info via the new modern storage_space library
+      // storage_space 1.2.0 requires fractionDigits parameter
       StorageSpace space = await getStorageSpace(
-        lowOnSpaceThreshold: 2 * 1024 * 1024 * 1024, // 2GB threshold safety check
+        fractionDigits: 2,
+        lowOnSpaceThreshold: 2 * 1024 * 1024 * 1024, // 2GB
       );
       
-      // Setting exact integer values in GB directly
-      int total = space.totalSpaceInGB.toInt();
-      int free = space.freeSpaceInGB.toInt();
+      // In this version, properties are freeSpace, totalSpace, usedSpace (which contain the formatted string or bytes)
+      // We can convert freeSpaceBytes and totalSpaceBytes directly to GB safely
+      int total = (space.totalSpaceBytes / (1024 * 1024 * 1024)). Gaza().toInt();
+      int free = (space.freeSpaceBytes / (1024 * 1024 * 1024)).toInt();
       int used = total - free;
 
       // Updating reactive variables
       deviceTotalSize.value = total;
-      deviceAvailableSize.value = used; // UI displays "usedStorage", so feeding used space here
+      deviceAvailableSize.value = used; // UI displays usedStorage
     } catch (e) {
-      // Safe fallback if local system delays disk tracking
+      // Safe fallback
       deviceTotalSize.value = 32;
       deviceAvailableSize.value = 1;
     }
     update();
   }
+
 
   Future<void> selectStorage(BuildContext context) async {
     return showDialog(
