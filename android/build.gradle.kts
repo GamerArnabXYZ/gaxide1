@@ -4,9 +4,7 @@ allprojects {
         mavenCentral()
     }
     
-    // ============================================================================
-    // KOTLIN VERSION FORCING: Purani libraries ka purana Kotlin plugin upgrade karna
-    // ============================================================================
+    // KOTLIN VERSION FORCING: Purani libraries ka plugin upgrade karne ke liye
     buildscript {
         configurations.all {
             resolutionStrategy {
@@ -20,7 +18,7 @@ val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build"
 rootProject.layout.buildDirectory.value(newBuildDir)
 
 // ============================================================================
-// MERGED SUBPROJECTS BLOCK: Build dir, evaluation, namespace patch, aur classpath forcing
+// MERGED SUBPROJECTS BLOCK: Target alignment, namespace aur dependencies patch
 // ============================================================================
 subprojects {
     // 1. Build directory set karna
@@ -30,7 +28,7 @@ subprojects {
     // 2. Evaluation depend on app
     project.evaluationDependsOn(":app")
 
-    // 3. Subprojects ke andar bhi buildscript ki dependencies ko force upgrade karna
+    // 3. Subprojects ke dependencies force upgrade karna
     buildscript {
         configurations.all {
             resolutionStrategy {
@@ -39,10 +37,23 @@ subprojects {
         }
     }
 
-    // 4. AGP 8.0+ safe namespace inject patch
+    // 4. FIX: Java aur Kotlin Compiler target mismatch ko door karna
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        kotlinOptions {
+            jvmTarget = "17" // Sabhi plugins ko Java 17 par force karein
+        }
+    }
+
+    // 5. AGP 8.0+ safe namespace inject patch
     val configureNamespace = {
         if (plugins.hasPlugin("com.android.library")) {
             extensions.findByType<com.android.build.gradle.LibraryExtension>()?.apply {
+                // Java target ko compile options me bhi align karein
+                compileOptions {
+                    sourceCompatibility = JavaVersion.VERSION_17
+                    targetCompatibility = JavaVersion.VERSION_17
+                }
+                
                 if (namespace == null) {
                     namespace = if (project.group.toString().isNotEmpty()) {
                         project.group.toString()
