@@ -37,24 +37,30 @@ subprojects {
         }
     }
 
-    // 4. FIX: Java aur Kotlin Compiler target mismatch ko door karna
+    // 4. FIX: Java aur Kotlin Compiler target mismatch ko bilkul lock karna (App + Plugins)
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
         kotlinOptions {
-            jvmTarget = "17" // Sabhi plugins ko Java 17 par force karein
+            jvmTarget = "17" 
         }
     }
+    
+    tasks.withType<JavaCompile>().configureEach {
+        sourceCompatibility = "17"
+        targetCompatibility = "17"
+    }
 
-    // 5. AGP 8.0+ safe namespace inject patch
+    // 5. AGP 8.0+ safe namespace inject aur App/Library compile options override
     val configureNamespace = {
-        if (plugins.hasPlugin("com.android.library")) {
-            extensions.findByType<com.android.build.gradle.LibraryExtension>()?.apply {
-                // Java target ko compile options me bhi align karein
+        // Yeh block ab application (app) aur library (plugins) dono par apply hoga
+        if (plugins.hasPlugin("com.android.library") || plugins.hasPlugin("com.android.application")) {
+            extensions.findByType<com.android.build.gradle.BaseExtension>()?.apply {
                 compileOptions {
                     sourceCompatibility = JavaVersion.VERSION_17
                     targetCompatibility = JavaVersion.VERSION_17
                 }
                 
-                if (namespace == null) {
+                // Namespace sirf plugins/libraries ke liye inject karna hai
+                if (plugins.hasPlugin("com.android.library") && namespace == null) {
                     namespace = if (project.group.toString().isNotEmpty()) {
                         project.group.toString()
                     } else {
