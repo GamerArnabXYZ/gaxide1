@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
-Color orage2 = const Color(0xFF0DD9E60);
-Color orange = const Color(0xFF0CF5E49);
-Color yellow = const Color(0xFF0E3C783);
-Color black = const Color(0xFF0321c28);
-Color white = const Color(0xFF0F5F5F5);
+// Fixed HEX color codes to standard 8-digit alpha-hex formats (0xFF + 6 hex chars)
+Color orage2 = const Color(0xFFDD9E60);
+Color orange = const Color(0xFFCF5E49);
+Color yellow = const Color(0xFFE3C783);
+Color black = const Color(0xFF321C28);
+Color white = const Color(0xFFF5F5F5);
 
-
+// Supported file formats for GAX IDE File System
 List<String> supportedDocumentExtensions = [
   ".pdf",
   ".doc",

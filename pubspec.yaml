@@ -1,29 +1,47 @@
-name: file_manager_app
-description: A new Flutter project.
+name: gax_ide
+description: GAX IDE - Advanced Mobile Code Editor & File Manager
 publish_to: 'none'
 
 version: 1.0.0+1
 
 environment:
-  sdk: '>=2.19.4 <3.0.0'
+  # Latest Dart 3.x support taaki naye packages bina kisi issue ke chalein
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  cupertino_icons: ^1.0.2
-  disk_space: ^0.2.1
-  file_manager: ^1.0.2
   flutter:
     sdk: flutter
-  get: ^4.6.5
-  path_provider: ^2.0.14
+  cupertino_icons: ^1.0.8
+
+  # ============================================================================
+  # CORE STORAGE & STATE UTILITIES (LATEST & SECURE)
+  # ============================================================================
+  # Disk Space aur Storage Info ka safe aur latest replacement
+  storage_space: ^1.0.2
+  
+  # Directory paths handle karne ke liye (Official Flutter team package)
+  path_provider: ^2.1.3
+  
+  # Modern runtime permissions permission handling ke liye
+  permission_handler: ^11.3.1
+  
+  # Dynamic state management aur clean routing ke liye
+  get: ^4.6.6
+  
+  # Responsive UI layouts ke liye screen size utilities
+  sizer: ^3.0.1
+  
+  # File tree aur structural operations logic handle karne ke liye
+  file_manager: ^1.0.2
+
+  # Modern Storage progress circle aur linear bars ke liye
   percent_indicator: ^4.2.3
-  permission_handler: ^10.2.0
-  sizer: ^2.0.15
-  storage_info: ^0.0.1
 
 dev_dependencies:
-  flutter_lints: ^2.0.0
   flutter_test:
     sdk: flutter
+  # Code analysis ko strictly maintain karne ke liye latest lints
+  flutter_lints: ^4.0.0
 
 flutter:
   uses-material-design: true

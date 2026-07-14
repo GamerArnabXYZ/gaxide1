@@ -11,7 +11,7 @@ import '../../utils/const.dart';
 import '../widgets/widgets.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage();
+  const HomePage({Key? key}) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -119,9 +119,9 @@ class _HomePageState extends State<HomePage> {
                           Padding(
                             padding: const EdgeInsets.symmetric(
                                 vertical: 20, horizontal: 8),
-                            child: storagePercentWidget(
-                                myController.deviceTotalSize.toInt(),
-                                myController.deviceAvailableSize.toInt()),
+                            child: Obx(() => storagePercentWidget(
+                                myController.deviceTotalSize.value.toInt(),
+                                myController.deviceAvailableSize.value.toInt())),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
@@ -211,14 +211,11 @@ class _HomePageState extends State<HomePage> {
                                             .then((value) {
                                           setState(() {});
                                         });
-                                        ;
                                       } else {
                                         await entity.delete().then((value) {
                                           setState(() {});
                                         });
-                                        ;
                                       }
-
                                       break;
                                     case 'button2':
                                       showDialog(
@@ -257,7 +254,6 @@ class _HomePageState extends State<HomePage> {
                                           );
                                         },
                                       );
-
                                       break;
                                     case 'button3':
                                       selectedFile = entity;
@@ -298,16 +294,14 @@ class _HomePageState extends State<HomePage> {
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                            subtitle: subtitle(
-                              entity,
-                            ),
+                            subtitle: subtitle(entity),
                             onTap: () async {
                               if (FileManager.isDirectory(entity)) {
                                 try {
                                   myController.controller.openDirectory(entity);
                                 } catch (e) {
                                   myController.alert(
-                                      context, "Enable to open this folder");
+                                      context, "Unable to open this folder");
                                 }
                               }
                             },
@@ -337,8 +331,9 @@ class _HomePageState extends State<HomePage> {
     if (await Permission.storage.request().isGranted &&
         await Permission.accessMediaLocation.request().isGranted &&
         await Permission.manageExternalStorage.request().isGranted) {
-      gotPermission = true;
-      setState(() {});
+      setState(() {
+        gotPermission = true;
+      });
     } else {
       await Permission.storage.request().then((value) {
         if (value.isGranted) {
@@ -386,7 +381,7 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         Icon(
                           Icons.file_present,
-                          color: orage2,
+                          color: orange, // Fixed typo from orage2
                         ),
                         const Text("New File     "),
                       ],
@@ -409,11 +404,9 @@ class _HomePageState extends State<HomePage> {
                   case 'button1':
                     myController.createFile(
                         context, myController.controller.getCurrentPath);
-
                     break;
                   case 'button2':
                     myController.createFolder(context);
-
                     break;
                 }
               },
@@ -427,7 +420,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ],
-      title: const Text("File Manager", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
+      title: const Text("GAX IDE", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () async {

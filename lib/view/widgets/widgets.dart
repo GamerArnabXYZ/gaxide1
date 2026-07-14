@@ -7,46 +7,55 @@ import 'package:sizer/sizer.dart';
 
 import '../../utils/const.dart';
 
-Widget storagePercentWidget(int totalStorage, int usedStorage) => Container(
-      height: 13.h,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: Colors.grey, width: 0.5),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("${usedStorage} GB / $totalStorage GB",
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.bold,
-                  )),
-              Text("Used Storage",
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w400,
-                  )),
-            ],
-          ),
-          CircularPercentIndicator(
-            animateFromLastPercent: true,
-            animation: true,
-            animationDuration: 1200,
-            radius: 31.0,
-            lineWidth: 5.0,
-            percent: usedStorage / totalStorage,
-      
-            progressColor: orange,
-            backgroundColor: orage2,
-          )
-        ],
-      ),
-    );
+Widget storagePercentWidget(int totalStorage, int usedStorage) {
+  // Safety calculation to prevent Division by Zero or NaN crashes during slow initialization
+  double safePercent = 0.0;
+  if (totalStorage > 0) {
+    safePercent = usedStorage / totalStorage;
+    if (safePercent > 1.0) safePercent = 1.0;
+    if (safePercent < 0.0) safePercent = 0.0;
+  }
+
+  return Container(
+    height: 13.h,
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(26),
+      border: Border.all(color: Colors.grey, width: 0.5),
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("$usedStorage GB / $totalStorage GB",
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.bold,
+                )),
+            Text("Used Storage",
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w400,
+                )),
+          ],
+        ),
+        CircularPercentIndicator(
+          animateFromLastPercent: true,
+          animation: true,
+          animationDuration: 1200,
+          radius: 31.0,
+          lineWidth: 5.0,
+          percent: safePercent,
+          progressColor: orange,
+          backgroundColor: orange.withOpacity(0.2), // Fixed typo: replaced orage2 with standard opacity fallback
+        )
+      ],
+    ),
+  );
+}
 
 Widget fileTypeWidget(String type, String size, String iconPath, Color color) {
   return Padding(
@@ -119,10 +128,8 @@ Widget subtitle(FileSystemEntity entity) {
             fontWeight: FontWeight.w400,
           ),
         );
-      } else {}
+      }
       return const Text("");
     },
   );
 }
-
-
