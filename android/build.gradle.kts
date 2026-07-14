@@ -18,7 +18,7 @@ val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build"
 rootProject.layout.buildDirectory.value(newBuildDir)
 
 // ============================================================================
-// MERGED SUBPROJECTS BLOCK: Target alignment, namespace aur dependencies patch
+// MERGED SUBPROJECTS BLOCK: Toolchain, namespace aur dependencies patch
 // ============================================================================
 subprojects {
     // 1. Build directory set karna
@@ -37,30 +37,23 @@ subprojects {
         }
     }
 
-    // 4. FIX: Java aur Kotlin Compiler target mismatch ko bilkul lock karna (App + Plugins)
-    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-        kotlinOptions {
-            jvmTarget = "17" 
+    // 4. FIX: Java Toolchain aur Kotlin JVM target (Bypasses finalized compileOptions)
+    plugins.withId("org.jetbrains.kotlin.android") {
+        extensions.findByType<org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension>()?.apply {
+            jvmToolchain(17) // Pure Kotlin android compilation ko Java 17 toolchain par set karein
         }
     }
-    
+
     tasks.withType<JavaCompile>().configureEach {
-        sourceCompatibility = "17"
-        targetCompatibility = "17"
+        // Direct compiler options target set karna jo finalized error nahi deta
+        options.release.set(17)
     }
 
-    // 5. AGP 8.0+ safe namespace inject aur App/Library compile options override
+    // 5. AGP 8.0+ safe namespace inject patch (Sirf libraries ke liye)
     val configureNamespace = {
-        // Yeh block ab application (app) aur library (plugins) dono par apply hoga
-        if (plugins.hasPlugin("com.android.library") || plugins.hasPlugin("com.android.application")) {
-            extensions.findByType<com.android.build.gradle.BaseExtension>()?.apply {
-                compileOptions {
-                    sourceCompatibility = JavaVersion.VERSION_17
-                    targetCompatibility = JavaVersion.VERSION_17
-                }
-                
-                // Namespace sirf plugins/libraries ke liye inject karna hai
-                if (plugins.hasPlugin("com.android.library") && namespace == null) {
+        if (plugins.hasPlugin("com.android.library")) {
+            extensions.findByType<com.android.build.gradle.LibraryExtension>()?.apply {
+                if (namespace == null) {
                     namespace = if (project.group.toString().isNotEmpty()) {
                         project.group.toString()
                     } else {
