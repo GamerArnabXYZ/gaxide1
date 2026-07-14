@@ -42,3 +42,16 @@ android {
 flutter {
     source = "../.."
 }
+
+subprojects {
+    afterEvaluate {
+        if (plugins.hasPlugin("com.android.library")) {
+            configure<com.android.build.gradle.LibraryExtension> {
+                if (namespace == null) {
+                    namespace = group.toString()
+                }
+            }
+        }
+    }
+}
+
