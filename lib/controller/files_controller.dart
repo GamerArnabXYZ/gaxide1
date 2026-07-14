@@ -27,28 +27,28 @@ class FilesController extends GetxController {
 
   Future<void> _getSpace() async {
     try {
-      // storage_space 1.2.0 requires fractionDigits parameter
+      // storage_space package expects fractionDigits for double formatting internally
       StorageSpace space = await getStorageSpace(
         fractionDigits: 2,
         lowOnSpaceThreshold: 2 * 1024 * 1024 * 1024, // 2GB
       );
       
-      // In this version, properties are freeSpace, totalSpace, usedSpace (which contain the formatted string or bytes)
-      // We can convert freeSpaceBytes and totalSpaceBytes directly to GB safely
-      int total = (space.totalSpaceBytes / (1024 * 1024 * 1024)). Gaza().toInt();
-      int free = (space.freeSpaceBytes / (1024 * 1024 * 1024)).toInt();
-      int used = total - free;
+      // In v1.2.0, totalSpace and freeSpace return the raw numeric double values directly
+      double total = space.totalSpace; 
+      double free = space.freeSpace;
+      double used = total - free;
 
-      // Updating reactive variables
-      deviceTotalSize.value = total;
-      deviceAvailableSize.value = used; // UI displays usedStorage
+      // Updating our reactive variables with integer conversion
+      deviceTotalSize.value = total.toInt();
+      deviceAvailableSize.value = used.toInt(); // UI displays used storage space
     } catch (e) {
-      // Safe fallback
+      // Ultimate safe fallback if platform storage access gets delayed
       deviceTotalSize.value = 32;
       deviceAvailableSize.value = 1;
     }
     update();
   }
+
 
 
   Future<void> selectStorage(BuildContext context) async {
