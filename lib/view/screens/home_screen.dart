@@ -9,7 +9,7 @@ import 'package:sizer/sizer.dart';
 import '../../controller/files_controller.dart';
 import '../../utils/const.dart';
 import '../widgets/widgets.dart';
-import 'settings_screen.dart'; // Settings screen ka import zaroori hai
+import 'settings_screen.dart'; // Settings screen ka import
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -32,6 +32,36 @@ class _HomePageState extends State<HomePage> {
     getPermission();
   }
 
+  // Dynamic helper to show items inside folders or modification date for files
+  Widget subtitle(FileSystemEntity entity) {
+    if (FileManager.isDirectory(entity)) {
+      try {
+        final dir = Directory(entity.path);
+        final list = dir.listSync();
+        final count = list.length;
+        return Text(
+          count == 0 ? "Empty" : "$count items",
+          style: TextStyle(fontSize: 10.sp, color: Colors.grey),
+        );
+      } catch (e) {
+        return Text(
+          "Access Restricted",
+          style: TextStyle(fontSize: 10.sp, color: Colors.redAccent),
+        );
+      }
+    } else {
+      try {
+        String dateStr = entity.statSync().changed.toString().split(' ')[0];
+        return Text(
+          dateStr,
+          style: TextStyle(fontSize: 10.sp, color: Colors.grey),
+        );
+      } catch (e) {
+        return const Text("");
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ControlBackButton(
@@ -41,7 +71,6 @@ class _HomePageState extends State<HomePage> {
         body: FileManager(
           controller: myController.controller,
           builder: (context, snapshot) {
-            // Calculation strictly backend cached calculations me hi chalti rahegi
             myController.calculateSize(snapshot);
 
             final List<FileSystemEntity> entities = isSearching
@@ -52,6 +81,11 @@ class _HomePageState extends State<HomePage> {
                     .where((element) =>
                         element.path != '/storage/emulated/0/Android')
                     .toList();
+
+            // ZArchiver Up Navigation checks
+            final bool isRoot = myController.controller.getCurrentPath == "/storage/emulated/0";
+            final bool showGoUp = !isRoot && !isSearching;
+
             return Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(
@@ -85,14 +119,44 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   
-                  // Clean List View direct layout initialization without clutter categories
+                  // Clean List View
                   Expanded(
                     child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 2, vertical: 0),
-                      itemCount: entities.length,
+                      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 0),
+                      itemCount: entities.length + (showGoUp ? 1 : 0),
                       itemBuilder: (context, index) {
-                        FileSystemEntity entity = entities[index];
+                        // 1. ZArchiver dynamic Up Folder (..) tile rendering
+                        if (showGoUp && index == 0) {
+                          return Ink(
+                            color: Colors.transparent,
+                            child: ListTile(
+                              leading: Card(
+                                color: orange.withOpacity(0.15),
+                                elevation: 0,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Icon(Icons.arrow_upward_rounded, color: orange),
+                                ),
+                              ),
+                              title: const Text(
+                                "..",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                              subtitle: const Text("Go to parent directory"),
+                              onTap: () async {
+                                await myController.controller.goToParentDirectory();
+                                setState(() {});
+                              },
+                            ),
+                          );
+                        }
+
+                        // Adjusting list index offsets based on dynamic up navigation status
+                        final int actualIndex = showGoUp ? index - 1 : index;
+                        FileSystemEntity entity = entities[actualIndex];
 
                         return Ink(
                           color: Colors.transparent,
@@ -234,12 +298,13 @@ class _HomePageState extends State<HomePage> {
                               if (FileManager.isDirectory(entity)) {
                                 try {
                                   myController.controller.openDirectory(entity);
+                                  setState(() {});
                                 } catch (e) {
                                   myController.alert(
                                       context, "Unable to open this folder");
                                 }
                               } else {
-                                // TODO: Yahan hamara Editor Screen invoke hoga file tap par content read karne ke liye
+                                // TODO: Editor screen redirection
                               }
                             },
                           ),
@@ -356,7 +421,6 @@ class _HomePageState extends State<HomePage> {
             icon: const Icon(Icons.sort_rounded),
           ),
         ),
-        // Premium Settings icon mapped directly for shifting storage logic out of Home dashboard
         Visibility(
           visible: !isMoving,
           child: IconButton(
@@ -370,6 +434,7 @@ class _HomePageState extends State<HomePage> {
         icon: const Icon(Icons.arrow_back),
         onPressed: () async {
           await myController.controller.goToParentDirectory();
+          setState(() {});
         },
       ),
     );
