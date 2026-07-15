@@ -7,7 +7,7 @@ plugins {
 
 android {
     // Aligned to your clean package identity
-    namespace = "com.gax.ide"
+    namespace = "com.gax.ide2"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.0.12077973"
 

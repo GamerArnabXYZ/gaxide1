@@ -9,6 +9,7 @@ import 'package:sizer/sizer.dart';
 import '../../controller/files_controller.dart';
 import '../../utils/const.dart';
 import '../widgets/widgets.dart';
+import 'settings_screen.dart'; // Settings screen ka import zaroori hai
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -22,7 +23,6 @@ class _HomePageState extends State<HomePage> {
   String searchQuery = '';
   var gotPermission = false;
   var isMoving = false;
-  var fullScreen = false;
   var isSearching = false;
   late FileSystemEntity selectedFile;
 
@@ -41,11 +41,12 @@ class _HomePageState extends State<HomePage> {
         body: FileManager(
           controller: myController.controller,
           builder: (context, snapshot) {
+            // Calculation strictly backend cached calculations me hi chalti rahegi
             myController.calculateSize(snapshot);
 
             final List<FileSystemEntity> entities = isSearching
                 ? snapshot
-                    .where((element) => element.path.contains(searchQuery))
+                    .where((element) => element.path.toLowerCase().contains(searchQuery.toLowerCase()))
                     .toList()
                 : snapshot
                     .where((element) =>
@@ -55,102 +56,36 @@ class _HomePageState extends State<HomePage> {
               padding: const EdgeInsets.all(8.0),
               child: Column(
                 children: [
-                  Visibility(
-                      visible: !fullScreen,
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: SizedBox(
-                              height: 7.5.h,
-                              child: TextField(
-                                onChanged: (value) {
-                                  setState(() {
-                                    isSearching = true;
-                                    searchQuery = value;
-                                    if (searchQuery.isEmpty ||
-                                        searchQuery == "" ||
-                                        searchQuery == " ") {
-                                      isSearching = false;
-                                    }
-                                  });
-                                },
-                                decoration: InputDecoration(
-                                  suffixIcon: const Icon(Icons.search),
-                                  filled: true,
-                                  fillColor: Colors.grey[200],
-                                  hintText: 'Search Files',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16.0),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                ),
-                              ),
-                            ),
+                  // Clean Baseline Search Input Field
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: SizedBox(
+                      height: 7.5.h,
+                      child: TextField(
+                        onChanged: (value) {
+                          setState(() {
+                            isSearching = true;
+                            searchQuery = value;
+                            if (searchQuery.trim().isEmpty) {
+                              isSearching = false;
+                            }
+                          });
+                        },
+                        decoration: InputDecoration(
+                          suffixIcon: const Icon(Icons.search),
+                          filled: true,
+                          fillColor: Colors.grey[200],
+                          hintText: 'Search Files',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16.0),
+                            borderSide: BorderSide.none,
                           ),
-                          SizedBox(
-                            height: 20.h,
-                            child: ListView(
-                              scrollDirection: Axis.horizontal,
-                              children: [
-                                fileTypeWidget(
-                                    "Document",
-                                    "${myController.documentSize.toStringAsFixed(2)} MB",
-                                    "assets/3d/folder-dynamic-color.png",
-                                    orange),
-                                fileTypeWidget(
-                                    "Videos",
-                                    "${myController.videoSize.toStringAsFixed(2)} MB",
-                                    "assets/3d/video-camera-iso-color.png",
-                                    yellow),
-                                fileTypeWidget(
-                                    "Images",
-                                    "${myController.imageSize.toStringAsFixed(2)} MB",
-                                    "assets/3d/Image_perspective_matte.png",
-                                    black),
-                                fileTypeWidget(
-                                    "Music",
-                                    "${myController.soundSize.toStringAsFixed(2)} MB",
-                                    "assets/3d/Music_perspective_matte.png",
-                                    orange),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 20, horizontal: 8),
-                            child: Obx(() => storagePercentWidget(
-                                myController.deviceTotalSize.value.toInt(),
-                                myController.deviceAvailableSize.value.toInt())),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text("Recent Files",
-                                    style: TextStyle(
-                                      fontSize: 14.sp,
-                                      fontWeight: FontWeight.w600,
-                                    )),
-                                InkWell(
-                                  onTap: () {
-                                    fullScreen = true;
-                                    setState(() {});
-                                  },
-                                  child: Text(
-                                    "See All",
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 10.sp,
-                                    ),
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
-                        ],
-                      )),
+                        ),
+                      ),
+                    ),
+                  ),
+                  
+                  // Clean List View direct layout initialization without clutter categories
                   Expanded(
                     child: ListView.builder(
                       padding: const EdgeInsets.symmetric(
@@ -303,6 +238,8 @@ class _HomePageState extends State<HomePage> {
                                   myController.alert(
                                       context, "Unable to open this folder");
                                 }
+                              } else {
+                                // TODO: Yahan hamara Editor Screen invoke hoga file tap par content read karne ke liye
                               }
                             },
                           ),
@@ -381,7 +318,7 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         Icon(
                           Icons.file_present,
-                          color: orange, // Fixed typo from orage2
+                          color: orange,
                         ),
                         const Text("New File     "),
                       ],
@@ -419,18 +356,20 @@ class _HomePageState extends State<HomePage> {
             icon: const Icon(Icons.sort_rounded),
           ),
         ),
+        // Premium Settings icon mapped directly for shifting storage logic out of Home dashboard
+        Visibility(
+          visible: !isMoving,
+          child: IconButton(
+            onPressed: () => Get.to(() => const SettingsScreen()),
+            icon: const Icon(Icons.settings_outlined),
+          ),
+        ),
       ],
       title: const Text("GAX IDE", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () async {
-          await myController.controller.goToParentDirectory().then((value) {
-            if (myController.controller.getCurrentPath ==
-                "/storage/emulated/0") {
-              fullScreen = false;
-              setState(() {});
-            }
-          });
+          await myController.controller.goToParentDirectory();
         },
       ),
     );

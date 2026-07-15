@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.gax.ide">
+    package="com.gax.ide2">
     
     <!-- Permissions Section -->
     <uses-permission android:name="android.permission.VIBRATE"/>
@@ -16,7 +16,7 @@
 
     <application
         android:requestLegacyExternalStorage="true"
-        android:label="GAX IDE1"
+        android:label="GAX IDE2"
         android:name="${applicationName}"
         android:icon="@drawable/splash">
         <activity

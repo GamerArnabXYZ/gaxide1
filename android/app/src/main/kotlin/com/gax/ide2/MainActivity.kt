@@ -1,4 +1,4 @@
-package com.gax.ide
+package com.gax.ide2
 
 import io.flutter.embedding.android.FlutterActivity
 
