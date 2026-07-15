@@ -23,7 +23,7 @@ android {
 
     defaultConfig {
         // Uniform application ID to match the layout
-        applicationId = "com.gax.ide"
+        applicationId = "com.gax.ide2"
         
         minSdk = 24
         targetSdk = flutter.targetSdkVersion

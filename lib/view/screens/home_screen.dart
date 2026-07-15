@@ -9,7 +9,7 @@ import 'package:sizer/sizer.dart';
 import '../../controller/files_controller.dart';
 import '../../utils/const.dart';
 import '../widgets/widgets.dart';
-import 'settings_screen.dart'; // Settings screen ka import
+import 'settings_screen.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -32,7 +32,6 @@ class _HomePageState extends State<HomePage> {
     getPermission();
   }
 
-  // Dynamic helper to show items inside folders or modification date for files
   Widget subtitle(FileSystemEntity entity) {
     if (FileManager.isDirectory(entity)) {
       try {
@@ -82,7 +81,6 @@ class _HomePageState extends State<HomePage> {
                         element.path != '/storage/emulated/0/Android')
                     .toList();
 
-            // ZArchiver Up Navigation checks
             final bool isRoot = myController.controller.getCurrentPath == "/storage/emulated/0";
             final bool showGoUp = !isRoot && !isSearching;
 
@@ -90,7 +88,6 @@ class _HomePageState extends State<HomePage> {
               padding: const EdgeInsets.all(8.0),
               child: Column(
                 children: [
-                  // Clean Baseline Search Input Field
                   Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: SizedBox(
@@ -119,13 +116,12 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   
-                  // Clean List View
                   Expanded(
                     child: ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 0),
                       itemCount: entities.length + (showGoUp ? 1 : 0),
                       itemBuilder: (context, index) {
-                        // 1. ZArchiver dynamic Up Folder (..) tile rendering
+                        // 1. Render Up-Navigation Tile at index 0
                         if (showGoUp && index == 0) {
                           return Ink(
                             color: Colors.transparent,
@@ -154,7 +150,7 @@ class _HomePageState extends State<HomePage> {
                           );
                         }
 
-                        // Adjusting list index offsets based on dynamic up navigation status
+                        // 2. Fixed Index Mapping Logic for Content Entities
                         final int actualIndex = showGoUp ? index - 1 : index;
                         FileSystemEntity entity = entities[actualIndex];
 
@@ -297,14 +293,15 @@ class _HomePageState extends State<HomePage> {
                             onTap: () async {
                               if (FileManager.isDirectory(entity)) {
                                 try {
-                                  myController.controller.openDirectory(entity);
+                                  // Fixed: Target strictly standard entity context
+                                  await myController.controller.openDirectory(entity);
                                   setState(() {});
                                 } catch (e) {
                                   myController.alert(
                                       context, "Unable to open this folder");
                                 }
                               } else {
-                                // TODO: Editor screen redirection
+                                // Editor view trigger later
                               }
                             },
                           ),
